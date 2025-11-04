@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
+/**
+ * Criacao e validacao de tokens
+ */
+
 @Component
 public class JwtUtil {
 
