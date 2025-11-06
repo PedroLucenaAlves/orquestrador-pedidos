@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -27,6 +29,30 @@ public class GlobalExceptionHandler {
 
         //Response json personalizada
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    //exception personalizada para nossa validacao do @Valid do DTO
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationErrors(
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
+
+        // Cria um mapa para guardar os erros de "campo: mensagem"
+        Map<String, String> fieldErrors = new HashMap<>();
+
+        // Itera sobre todos os erros de campo encontrados
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            fieldErrors.put(error.getField(), error.getDefaultMessage());
+        }
+
+        // Monta o corpo (body) da resposta final e intuitiva
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value()); // 400
+        body.put("erro", "Erro de Validação");
+        body.put("camposInvalidos", fieldErrors); // O mapa de erros
+        body.put("caminho", request.getRequestURI());
+
+        // Retorna um 400 Bad Request
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
 
